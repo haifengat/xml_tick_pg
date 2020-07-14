@@ -3,9 +3,6 @@
 #### 介绍
 xml数据包由期货公司提供,本程序将xml数据包存入pg tick数据表中
 
-#### 软件架构
-软件架构说明
-
 
 #### 使用说明
 环境变量
@@ -16,7 +13,7 @@ xml数据包由期货公司提供,本程序将xml数据包存入pg tick数据表
 
 ## Dockerfile
 ```dockerfile
-FROM haifengat/centos:8.1
+FROM haifengat/pyctp:2.3.2
 COPY *.py /home/
 RUN pip install -r /home/requirements.txt
 ENV pg_addr postgresql://postgres:123456@172.19.129.98:15432/postgres
