@@ -1,0 +1,4 @@
+lxml
+color_log
+SQLAlchemy
+psycopg2-binary

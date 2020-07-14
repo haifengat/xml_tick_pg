@@ -7,31 +7,25 @@ xml数据包由期货公司提供,本程序将xml数据包存入pg tick数据表
 软件架构说明
 
 
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
 #### 使用说明
+环境变量
+> xml_zip_path
+  xml压缩包路径
+> pg_conn
+  postgres连接字串 postgres://user:password@ip:port/db
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## Dockerfile
+```dockerfile
+FROM haifengat/centos:8.1
+COPY *.py /home/
+RUN pip install -r /home/requirements.txt
+ENV pg_addr postgresql://postgres:123456@172.19.129.98:15432/postgres
+ENTRYPOINT ["python", "/home/xml_pg.py"]
+```
 
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 码云特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5.  码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+### build
+```bash
+# 通过github git push触发 hub.docker自动build 到标签latest
+# 执行下面语句生成 yyyyMMdd的标签
+docker pull haifengat/xml_pg && docker tag haifengat/xml_pg haifengat/xml_pg:`date +%Y%m%d` && docker push haifengat/xml_pg:`date +%Y%m%d`
+```
