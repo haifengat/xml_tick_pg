@@ -11,6 +11,7 @@
 # here put the import lib
 import os, sys, time, tarfile
 from datetime import datetime, timedelta
+from time import localtime, strftime
 from lxml import etree as ET
 from io import StringIO
 import config as cfg
@@ -21,13 +22,10 @@ cursor.execute('''select "day" from future.calendar where tra''') # and "day" be
 trading_days = [c[0] for c in cursor.fetchall()]
 
     
-def xml_pg(day: str = ''):
+def xml_pg(day: str):
     """"""
     # 数据压缩包解压
     cfg.log.info(f'extract {day} ...')
-    if not os.path.exists(cfg.xml_zip_path):
-        cfg.log.error(f'xml path {cfg.xml_zip_path} is NOT exists!')
-        sys.exit(-1)
     tar = tarfile.open(os.path.join(cfg.xml_zip_path, day + '.tar.gz'))
     # 解压到./tradingday/
     tar.extract('marketdata.xml', f'./{day}')
@@ -37,15 +35,8 @@ def xml_pg(day: str = ''):
 
     # 写入数据
     cfg.log.info(f'dicts to pg {day} ...')
-    connection = cfg.en_pg.raw_connection()  # engine 是 from sqlalchemy import create_engine
-    cursor = connection.cursor()
     output = StringIO()
     
-    cursor.execute(f"select count(1) from pg_catalog.pg_namespace where nspname = 'future_tick'") # schema是否存在
-    if cursor.fetchone()[0] == 0:
-        sqlstr = f'CREATE SCHEMA future_tick;'
-        cursor.execute(sqlstr)
-        connection.commit()
 
     cursor.execute(f"select count(1) from pg_tables where schemaname='future_tick' and tablename='{day}';")  # 表名必须用'引起来
     # 存在: 删除
@@ -118,5 +109,39 @@ def xml_pg(day: str = ''):
 
 
 if __name__ == "__main__":
-    day = '20200417'
-    xml_pg(day)
+
+    if not os.path.exists(cfg.xml_zip_path):
+        cfg.log.error(f'xml path {cfg.xml_zip_path} is NOT exists!')
+        sys.exit(-1)
+
+    # 已经存在的数据
+    days = os.listdir(cfg.xml_zip_path)
+    days = [d.split('.')[0] for d in days if d >= '20200203'] # 新数据
+
+    connection = cfg.en_pg.raw_connection()  # engine 是 from sqlalchemy import create_engine
+    cursor = connection.cursor()
+    cursor.execute(f"select count(1) from pg_catalog.pg_namespace where nspname = 'future_tick'") # schema是否存在
+    if cursor.fetchone()[0] == 0:
+        sqlstr = f'CREATE SCHEMA future_tick;'
+        cursor.execute(sqlstr)
+        connection.commit()
+    else:
+        sqlstr = f"select max(tablename) from pg_catalog.pg_tables where schemaname = 'future_tick'"
+        cursor.execute(sqlstr)
+        maxday = cursor.fetchone()[0]
+        if maxday is not None:
+            days = [d for d in days if d > maxday]
+        
+    for day in days:
+        xml_pg(day)
+
+    next_day = time.strftime('%Y%m%d', time.localtime())
+    next_day = [d for d in trading_days if d >= next_day][0]
+    while True:
+        if not os.path.exists(os.path.join(cfg.xml_zip_path, f'{next_day}.tar.gz')):
+            time.sleep(60 * 10)
+            continue
+        time.sleep(60) # 待文件写入
+        xml_pg(next_day)
+        next_day = [d for d in trading_days if d > next_day][0]
+        cfg.log.info(f'wait for next day: {next_day}')

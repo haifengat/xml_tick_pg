@@ -24,5 +24,10 @@ ENTRYPOINT ["python", "/home/xml_pg.py"]
 ```bash
 # 通过github git push触发 hub.docker自动build 到标签latest
 # 执行下面语句生成 yyyyMMdd的标签
-docker pull haifengat/xml_pg && docker tag haifengat/xml_pg haifengat/xml_pg:`date +%Y%m%d` && docker push haifengat/xml_pg:`date +%Y%m%d`
+docker pull haifengat/xml_tick_pg && docker tag haifengat/xml_tick_pg haifengat/xml_tick_pg:`date +%Y%m%d` && docker push haifengat/xml_tick_pg:`date +%Y%m%d`
+```
+
+### RUN
+```bash
+docker run -itd --name xml_pg --privileged -e xml_zip_path="/xml" -e pg_addr="postgresql://user:pwd@pg_server_ip:5432/postgres" -v ${宿主xml文件路径}:/xml/ haifengat/xml_tick_pg
 ```
