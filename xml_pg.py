@@ -37,7 +37,8 @@ def xml_pg(day: str):
     cfg.log.info(f'dicts to pg {day} ...')
     output = StringIO()
     
-
+    connection = cfg.en_pg.raw_connection()
+    cursor = connection.cursor()
     cursor.execute(f"select count(1) from pg_tables where schemaname='future_tick' and tablename='{day}';")  # 表名必须用'引起来
     # 存在: 删除
     if cursor.fetchone()[0] > 0:

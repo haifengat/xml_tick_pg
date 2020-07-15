@@ -30,4 +30,6 @@ docker pull haifengat/xml_tick_pg && docker tag haifengat/xml_tick_pg haifengat/
 ### RUN
 ```bash
 docker run -itd --name xml_pg --privileged -e xml_zip_path="/xml" -e pg_addr="postgresql://user:pwd@pg_server_ip:5432/postgres" -v ${宿主xml文件路径}:/xml/ haifengat/xml_tick_pg
+# 查看日志
+docker logs -f xml_pg
 ```
