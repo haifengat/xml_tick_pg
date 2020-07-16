@@ -106,7 +106,6 @@ def xml_pg(day: str):
     # df: DataFrame = DataFrame(dics)
     os.remove(xml_file)
     os.removedirs(day)
-    return
 
 
 if __name__ == "__main__":
@@ -117,7 +116,8 @@ if __name__ == "__main__":
 
     # 已经存在的数据
     days = os.listdir(cfg.xml_zip_path)
-    days = [d.split('.')[0] for d in days if d >= '20200203'] # 新数据
+    if len(sys.argv) > 1:
+        days = [d.split('.')[0] for d in days if d >= sys.argv[1]] # 处理>=参数的日期
 
     connection = cfg.en_pg.raw_connection()  # engine 是 from sqlalchemy import create_engine
     cursor = connection.cursor()
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         sqlstr = f'CREATE SCHEMA future_tick;'
         cursor.execute(sqlstr)
         connection.commit()
-    else:
+    elif len(sys.argv) == 1: # 无参数传递
         sqlstr = f"select max(tablename) from pg_catalog.pg_tables where schemaname = 'future_tick'"
         cursor.execute(sqlstr)
         maxday = cursor.fetchone()[0]
@@ -138,6 +138,7 @@ if __name__ == "__main__":
 
     next_day = time.strftime('%Y%m%d', time.localtime())
     next_day = [d for d in trading_days if d >= next_day][0]
+    cfg.log.info(f'wait for next day: {next_day}')
     while True:
         if not os.path.exists(os.path.join(cfg.xml_zip_path, f'{next_day}.tar.gz')):
             time.sleep(60 * 10)

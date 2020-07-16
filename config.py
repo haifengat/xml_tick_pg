@@ -20,7 +20,7 @@ xml_zip_path = '/mnt/future_xml/'
 if 'xml_zip_path' in os.environ:
     xml_zip_path = os.environ['xml_zip_path']
 
-pg_conn = 'postgres://postgres:123456@172.19.129.98:15432/postgres'
+pg_conn = 'postgres://postgres:123456@172.19.129.98:35432/postgres'
 if 'pg_conn' in os.environ:
     pg_conn = os.environ['pg_conn']
 
