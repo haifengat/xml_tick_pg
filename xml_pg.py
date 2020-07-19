@@ -22,7 +22,7 @@ trading_days = []
 def init():
     """初始化:取交易日历和品种时间"""
     trading_days.clear()
-    with open('./calendar.csv') as f:
+    with open('/home/calendar.csv') as f:
         reader = csv.DictReader(f)
         for r in reader:
             if r['tra'] == 'false':
@@ -31,7 +31,7 @@ def init():
             
     trade_time.clear()
     tmp = {}
-    with open('./tradingtime.csv') as f:
+    with open('/home/tradingtime.csv') as f:
         reader = csv.DictReader(f)
         proc_day = {}
         for r in reader:
