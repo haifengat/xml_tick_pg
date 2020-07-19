@@ -7,15 +7,15 @@ services:
         environment:
             - TZ=Asia/Shanghai
             - xml_zip_path=/xml
-            - pg_conn=postgres://postgres:123456@pg_tick_xml:5432/postgres
+            - pg_conn=postgres://postgres:123456@pg_tick:5432/postgres
         volumes:
             - /mnt/future_xml:/xml
         depends_on:
-            - pg_tick_xml
+            - pg_tick
 
-    pg_tick_xml:
+    pg_tick:
         image: postgres:12
-        container_name: pg_tick_xml
+        container_name: pg_tick
         restart: always
         environment:
             - TZ=Asia/Shanghai

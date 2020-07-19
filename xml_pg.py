@@ -9,21 +9,57 @@
 '''
 
 # here put the import lib
-import os, sys, time, tarfile
+import os, sys, time, tarfile, csv, json
 from datetime import datetime, timedelta
 from time import localtime, strftime
 from lxml import etree as ET
 from io import StringIO
 import config as cfg
 
-conn = cfg.en_pg.raw_connection()
-cursor = conn.cursor()
-cursor.execute('''select "day" from future.calendar where tra''') # and "day" between to_char(now()::timestamp + '-30 days', 'yyyyMMdd') and to_char(now()::timestamp + '30 days', 'yyyyMMdd')''')
-trading_days = [c[0] for c in cursor.fetchall()]
+trade_time = {}
+trading_days = []
 
-    
+def init():
+    """初始化:取交易日历和品种时间"""
+    trading_days.clear()
+    with open('./calendar.csv') as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            if r['tra'] == 'false':
+                continue
+            trading_days.append(r['day'])
+            
+    trade_time.clear()
+    tmp = {}
+    with open('./tradingtime.csv') as f:
+        reader = csv.DictReader(f)
+        proc_day = {}
+        for r in reader:
+            # 按时间排序, 确保最后实施的时间段作为依据.
+            if r['GroupId'] not in proc_day or r['OpenDate'] > proc_day[r['GroupId']]:
+                tmp[r['GroupId']] = r['WorkingTimes']
+            proc_day[r['GroupId']] = r['OpenDate']
+    # 根据时间段设置,生成 opens; ends; mins盘中时间
+    for g_id, section  in tmp.items():
+        opens = []
+        ends = []
+        mins = []
+        for s in json.loads(section):
+            opens.append((datetime.strptime(s['Begin'], '%H:%M:%S') + timedelta(minutes=-1)).strftime('%H:%M:00'))
+            ends.append(s['End'])
+            t_begin = datetime.strptime('20180101' + s['Begin'], '%Y%m%d%H:%M:%S')
+            s_end = datetime.strptime('20180101' + s['End'], '%Y%m%d%H:%M:%S')
+            if t_begin > s_end:  # 夜盘
+                s_end += timedelta(days=1)
+            while t_begin < s_end:
+                mins.append(t_begin.strftime('%H:%M:00'))
+                t_begin = t_begin + timedelta(minutes=1)
+        trade_time[g_id] = {'Opens': opens, 'Ends': ends, 'Mins': mins}
+        
 def xml_pg(day: str):
     """"""
+    # 初始化数据
+    init()
     # 数据压缩包解压
     cfg.log.info(f'extract {day} ...')
     tar = tarfile.open(os.path.join(cfg.xml_zip_path, day + '.tar.gz'))

@@ -116,3 +116,4 @@ dmypy.json
 log*/
 2020*/
 .vscode*/
+*.csv
