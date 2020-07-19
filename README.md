@@ -62,5 +62,4 @@ services:
             - "35432:5432"
         volumes:
             - ./pgdata:/var/lib/postgresql/data
-
 ```

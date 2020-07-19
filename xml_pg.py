@@ -16,13 +16,16 @@ from lxml import etree as ET
 from io import StringIO
 import config as cfg
 
+# global trade_time, trading_days
 trade_time = {}
 trading_days = []
+
+pwd = os.path.abspath(os.path.dirname(__file__))
 
 def init():
     """初始化:取交易日历和品种时间"""
     trading_days.clear()
-    with open('/home/calendar.csv') as f:
+    with open(f'{pwd}/calendar.csv') as f:
         reader = csv.DictReader(f)
         for r in reader:
             if r['tra'] == 'false':
@@ -31,7 +34,7 @@ def init():
             
     trade_time.clear()
     tmp = {}
-    with open('/home/tradingtime.csv') as f:
+    with open(f'{pwd}/tradingtime.csv') as f:
         reader = csv.DictReader(f)
         proc_day = {}
         for r in reader:
@@ -168,13 +171,19 @@ if __name__ == "__main__":
         maxday = cursor.fetchone()[0]
         if maxday is not None:
             days = [d for d in days if d > maxday]
-        
-    for day in days:
-        xml_pg(day)
 
-    next_day = time.strftime('%Y%m%d', time.localtime())
-    next_day = [d for d in trading_days if d >= next_day][0]
+    
+    if len(days) > 0:
+        for day in days:
+            xml_pg(day)
+        next_day = [d for d in trading_days if d > days[-1]][0] # 此处用 >
+    else:
+        # 取下一交易日
+        init()
+        next_day = time.strftime('%Y%m%d', time.localtime())
+        next_day = [d for d in trading_days if d >= next_day][0]  # 此处用 >=
     cfg.log.info(f'wait for next day: {next_day}')
+
     while True:
         if not os.path.exists(os.path.join(cfg.xml_zip_path, f'{next_day}.tar.gz')):
             time.sleep(60 * 10)
