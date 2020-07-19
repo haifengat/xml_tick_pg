@@ -151,9 +151,9 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     # 已经存在的数据
-    days = os.listdir(cfg.xml_zip_path)
+    days = [d.split('.')[0] for d in os.listdir(cfg.xml_zip_path)]
     if len(sys.argv) > 1:
-        days = [d.split('.')[0] for d in days if d >= sys.argv[1]] # 处理>=参数的日期
+        days = [d for d in days if d >= sys.argv[1]] # 处理>=参数的日期
 
     connection = cfg.en_pg.raw_connection()  # engine 是 from sqlalchemy import create_engine
     cursor = connection.cursor()
